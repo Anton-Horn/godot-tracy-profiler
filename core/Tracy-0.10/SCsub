@@ -1,4 +1,4 @@
 
 Import("env")
 env.Append(CPPDEFINES=['TRACY_ENABLE'])
-env.add_source_files(env.core_sources, "tracy-0.10/public/TracyCient.cpp")
+env.add_source_files(env.core_sources, "tracy-0.10/public/*.cpp")

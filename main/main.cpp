@@ -3581,6 +3581,8 @@ bool Main::iteration() {
 	//for now do not error on this
 	//ERR_FAIL_COND_V(iterating, false);
 
+	ZoneScopedN("Main");
+
 	iterating++;
 
 	const uint64_t ticks = OS::get_singleton()->get_ticks_usec();
