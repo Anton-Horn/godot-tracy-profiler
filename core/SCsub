@@ -239,7 +239,9 @@ SConscript("templates/SCsub")
 SConscript("string/SCsub")
 SConscript("config/SCsub")
 SConscript("error/SCsub")
-SConscript("Tracy-0.10/SCsub")
+
+if env["tracy"]:
+    SConscript("Tracy-0.10/SCsub")
 
 # Build it all as a library
 lib = env.add_library("core", env.core_sources)
