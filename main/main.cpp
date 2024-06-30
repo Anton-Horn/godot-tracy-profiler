@@ -3580,8 +3580,9 @@ static uint64_t navigation_process_max = 0;
 bool Main::iteration() {
 	//for now do not error on this
 	//ERR_FAIL_COND_V(iterating, false);
-
-	ZoneScopedN("Main");
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 
 	iterating++;
 
@@ -3627,6 +3628,11 @@ bool Main::iteration() {
 	NavigationServer3D::get_singleton()->sync();
 
 	for (int iters = 0; iters < advance.physics_steps; ++iters) {
+		
+		#ifdef TRACY_ENABLE
+			ZoneScopedN("Main::iteration::PhysicsProcess");
+		#endif
+
 		if (Input::get_singleton()->is_using_input_buffering() && agile_input_event_flushing) {
 			Input::get_singleton()->flush_buffered_events();
 		}
@@ -3650,20 +3656,42 @@ bool Main::iteration() {
 		}
 
 		uint64_t navigation_begin = OS::get_singleton()->get_ticks_usec();
+		
+		#ifdef TRACY_ENABLE
+		{
+			ZoneScopedN("Main::iteration::PhysicsProcess::Navigation");
+			NavigationServer3D::get_singleton()->process(physics_step * time_scale);
 
+			navigation_process_ticks = MAX(navigation_process_ticks, OS::get_singleton()->get_ticks_usec() - navigation_begin); // keep the largest one for reference
+			navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
+
+			message_queue->flush();
+		}
+		#else
 		NavigationServer3D::get_singleton()->process(physics_step * time_scale);
 
 		navigation_process_ticks = MAX(navigation_process_ticks, OS::get_singleton()->get_ticks_usec() - navigation_begin); // keep the largest one for reference
 		navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
 
 		message_queue->flush();
+		#endif
 
-		PhysicsServer3D::get_singleton()->end_sync();
-		PhysicsServer3D::get_singleton()->step(physics_step * time_scale);
+		#ifdef TRACY_ENABLE
+		{
+			ZoneScopedN("Main::iteration::PhysicsProcess::Physics");
+			PhysicsServer3D::get_singleton()->end_sync();
+			PhysicsServer3D::get_singleton()->step(physics_step * time_scale);
 
-		PhysicsServer2D::get_singleton()->end_sync();
-		PhysicsServer2D::get_singleton()->step(physics_step * time_scale);
+			PhysicsServer2D::get_singleton()->end_sync();
+			PhysicsServer2D::get_singleton()->step(physics_step * time_scale);
+		}
+		#else
+			PhysicsServer3D::get_singleton()->end_sync();
+			PhysicsServer3D::get_singleton()->step(physics_step * time_scale);
 
+			PhysicsServer2D::get_singleton()->end_sync();
+			PhysicsServer2D::get_singleton()->step(physics_step * time_scale);
+		#endif
 		message_queue->flush();
 
 		physics_process_ticks = MAX(physics_process_ticks, OS::get_singleton()->get_ticks_usec() - physics_begin); // keep the largest one for reference
@@ -3678,11 +3706,21 @@ bool Main::iteration() {
 	}
 
 	uint64_t process_begin = OS::get_singleton()->get_ticks_usec();
-
+	#ifdef TRACY_ENABLE
+	{
+		ZoneScopedN("Main::iteration::Process");
+		if (OS::get_singleton()->get_main_loop()->process(process_step * time_scale)) {
+			exit = true;
+		}
+		message_queue->flush();
+	}
+	#else
 	if (OS::get_singleton()->get_main_loop()->process(process_step * time_scale)) {
 		exit = true;
 	}
 	message_queue->flush();
+	#endif
+	
 
 	RenderingServer::get_singleton()->sync(); //sync if still drawing from previous frames.
 
