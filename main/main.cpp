@@ -121,6 +121,8 @@
 #endif // TOOLS_ENABLED && !GDSCRIPT_NO_LSP
 #endif // MODULE_GDSCRIPT_ENABLED
 
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
+
 /* Static members */
 
 // Singletons

@@ -1,8 +1,4 @@
+
 Import("env")
-
-tracy_dir = "#Tracy-0.10/tracy-0.10/public/tracy"
-tracy_source = [
-    'tracy/public/TracyClient.cpp'
-]
-
-env.Prepend(CPPPATH=[tracy_dir])
+env.Append(CPPDEFINES=['TRACY_ENABLE'])
+env.add_source_files(env.core_sources, "tracy-0.10/public/TracyCient.cpp")
