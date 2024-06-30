@@ -240,6 +240,12 @@ SConscript("string/SCsub")
 SConscript("config/SCsub")
 SConscript("error/SCsub")
 
+tracy_dir = "#tracy/public/tracy"
+tracy_source = [
+    'tracy/public/TracyClient.cpp'
+]
+
+env.Prepend(CPPPATH=[tracy_dir])
 
 # Build it all as a library
 lib = env.add_library("core", env.core_sources)
