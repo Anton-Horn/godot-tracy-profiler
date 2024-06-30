@@ -1,4 +1,6 @@
-tracy_dir = "#tracy/public/tracy"
+Import("env")
+
+tracy_dir = "#Tracy-0.10/tracy-0.10/public/tracy"
 tracy_source = [
     'tracy/public/TracyClient.cpp'
 ]
