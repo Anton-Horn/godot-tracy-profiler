@@ -34,7 +34,14 @@
 #include "core/os/os.h"
 #include "core/os/thread_safe.h"
 
+#ifdef TRACY_ENABLE
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
+#endif
+
 void WorkerThreadPool::Task::free_template_userdata() {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("free_template_userdata");
+	#endif
 	ERR_FAIL_NULL(template_userdata);
 	ERR_FAIL_NULL(native_func_userdata);
 	BaseTemplateUserdata *btu = (BaseTemplateUserdata *)native_func_userdata;
@@ -44,6 +51,9 @@ void WorkerThreadPool::Task::free_template_userdata() {
 WorkerThreadPool *WorkerThreadPool::singleton = nullptr;
 
 void WorkerThreadPool::_process_task_queue() {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("process_task_queue");
+	#endif
 	task_mutex.lock();
 	Task *task = task_queue.first()->self();
 	task_queue.remove(task_queue.first());
@@ -52,6 +62,10 @@ void WorkerThreadPool::_process_task_queue() {
 }
 
 void WorkerThreadPool::_process_task(Task *p_task) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("process_task");
+	std::cout >> "process_task" >> std::endl;
+	#endif
 	bool low_priority = p_task->low_priority;
 	int pool_thread_index = -1;
 	Task *prev_low_prio_task = nullptr; // In case this is recursively called.
@@ -187,6 +201,9 @@ void WorkerThreadPool::_process_task(Task *p_task) {
 }
 
 void WorkerThreadPool::_thread_function(void *p_user) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("thread_function");
+	#endif
 	while (true) {
 		singleton->task_available_semaphore.wait();
 		if (singleton->exit_threads) {
@@ -197,11 +214,17 @@ void WorkerThreadPool::_thread_function(void *p_user) {
 }
 
 void WorkerThreadPool::_native_low_priority_thread_function(void *p_user) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("native_low_priority_thread_function");
+	#endif
 	Task *task = (Task *)p_user;
 	singleton->_process_task(task);
 }
 
 void WorkerThreadPool::_post_task(Task *p_task, bool p_high_priority) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("post_task");
+	#endif
 	// Fall back to processing on the calling thread if there are no worker threads.
 	// Separated into its own variable to make it easier to extend this logic
 	// in custom builds.
@@ -236,6 +259,9 @@ void WorkerThreadPool::_post_task(Task *p_task, bool p_high_priority) {
 }
 
 bool WorkerThreadPool::_try_promote_low_priority_task() {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("try_promote_low_priority_task");
+	#endif
 	if (low_priority_task_queue.first()) {
 		Task *low_prio_task = low_priority_task_queue.first()->self();
 		low_priority_task_queue.remove(low_priority_task_queue.first());
@@ -248,6 +274,9 @@ bool WorkerThreadPool::_try_promote_low_priority_task() {
 }
 
 void WorkerThreadPool::_prevent_low_prio_saturation_deadlock() {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("prevent_low_prio_saturation_deadlock");
+	#endif
 	if (low_priority_tasks_awaiting_others == low_priority_tasks_running) {
 #ifdef DEV_ENABLED
 		print_verbose("WorkerThreadPool: Low-prio slots saturated with tasks all waiting for other low-prio tasks. Attempting to avoid deadlock by scheduling one extra task.");
@@ -269,6 +298,9 @@ WorkerThreadPool::TaskID WorkerThreadPool::add_native_task(void (*p_func)(void *
 }
 
 WorkerThreadPool::TaskID WorkerThreadPool::_add_task(const Callable &p_callable, void (*p_func)(void *), void *p_userdata, BaseTemplateUserdata *p_template_userdata, bool p_high_priority, const String &p_description) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("add_task");
+	#endif
 	task_mutex.lock();
 	// Get a free task
 	Task *task = task_allocator.alloc();
@@ -291,6 +323,9 @@ WorkerThreadPool::TaskID WorkerThreadPool::add_task(const Callable &p_action, bo
 }
 
 bool WorkerThreadPool::is_task_completed(TaskID p_task_id) const {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("is_task_completed");
+	#endif
 	task_mutex.lock();
 	const Task *const *taskp = tasks.getptr(p_task_id);
 	if (!taskp) {
@@ -305,6 +340,9 @@ bool WorkerThreadPool::is_task_completed(TaskID p_task_id) const {
 }
 
 Error WorkerThreadPool::wait_for_task_completion(TaskID p_task_id) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("wait_for_task_completion");
+	#endif
 	task_mutex.lock();
 	Task **taskp = tasks.getptr(p_task_id);
 	if (!taskp) {
@@ -416,6 +454,9 @@ Error WorkerThreadPool::wait_for_task_completion(TaskID p_task_id) {
 }
 
 WorkerThreadPool::GroupID WorkerThreadPool::_add_group_task(const Callable &p_callable, void (*p_func)(void *, uint32_t), void *p_userdata, BaseTemplateUserdata *p_template_userdata, int p_elements, int p_tasks, bool p_high_priority, const String &p_description) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("add_group_task");
+	#endif
 	ERR_FAIL_COND_V(p_elements < 0, INVALID_TASK_ID);
 	if (p_tasks < 0) {
 		p_tasks = MAX(1u, threads.size());
@@ -473,6 +514,9 @@ WorkerThreadPool::GroupID WorkerThreadPool::add_group_task(const Callable &p_act
 }
 
 uint32_t WorkerThreadPool::get_group_processed_element_count(GroupID p_group) const {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("get_group_processed_element_count");
+	#endif
 	task_mutex.lock();
 	const Group *const *groupp = groups.getptr(p_group);
 	if (!groupp) {
@@ -496,6 +540,9 @@ bool WorkerThreadPool::is_group_task_completed(GroupID p_group) const {
 }
 
 void WorkerThreadPool::wait_for_group_task_completion(GroupID p_group) {
+	#ifdef TRACY_ENABLE
+	ZoneScopedN("wait_for_group_task_completion");
+	#endif
 	task_mutex.lock();
 	Group **groupp = groups.getptr(p_group);
 	task_mutex.unlock();

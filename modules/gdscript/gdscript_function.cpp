@@ -32,6 +32,10 @@
 
 #include "gdscript.h"
 
+#ifdef TRACY_ENABLE
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
+#endif
+
 Variant GDScriptFunction::get_constant(int p_idx) const {
 	ERR_FAIL_INDEX_V(p_idx, constants.size(), "<errconst>");
 	return constants[p_idx];
@@ -135,6 +139,9 @@ GDScriptFunction::~GDScriptFunction() {
 /////////////////////
 
 Variant GDScriptFunctionState::_signal_callback(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	Variant arg;
 	r_error.error = Callable::CallError::CALL_OK;
 
