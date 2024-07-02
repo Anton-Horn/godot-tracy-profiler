@@ -52,6 +52,7 @@
 #include "core/io/file_access.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/os/os.h"
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_paths.h"
@@ -98,6 +99,9 @@ Object *GDScriptNativeClass::instantiate() {
 }
 
 Variant GDScriptNativeClass::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	if (p_method == SNAME("new")) {
 		// Constructor.
 		return Object::callp(p_method, p_args, p_argcount, r_error);
@@ -846,6 +850,9 @@ void GDScript::unload_static() const {
 }
 
 Variant GDScript::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	GDScript *top = this;
 	while (top) {
 		HashMap<StringName, GDScriptFunction *>::Iterator E = top->member_functions.find(p_method);
@@ -1887,6 +1894,9 @@ bool GDScriptInstance::has_method(const StringName &p_method) const {
 }
 
 Variant GDScriptInstance::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	GDScript *sptr = script.ptr();
 	if (unlikely(p_method == SNAME("_ready"))) {
 		// Call implicit ready first, including for the super classes.

@@ -41,6 +41,7 @@
 #include "core/string/translation.h"
 #include "core/templates/local_vector.h"
 #include "core/variant/typed_array.h"
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
 
 #ifdef DEBUG_ENABLED
 
@@ -700,6 +701,9 @@ void Object::setvar(const Variant &p_key, const Variant &p_value, bool *r_valid)
 }
 
 Variant Object::callv(const StringName &p_method, const Array &p_args) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	const Variant **argptrs = nullptr;
 
 	if (p_args.size() > 0) {
@@ -718,6 +722,9 @@ Variant Object::callv(const StringName &p_method, const Array &p_args) {
 }
 
 Variant Object::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
+	#ifdef TRACY_ENABLE
+		ZoneScoped;
+	#endif
 	r_error.error = Callable::CallError::CALL_OK;
 
 	if (p_method == CoreStringNames::get_singleton()->_free) {
