@@ -140,7 +140,7 @@ GDScriptFunction::~GDScriptFunction() {
 
 Variant GDScriptFunctionState::_signal_callback(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 	#ifdef TRACY_ENABLE
-		ZoneScoped;
+		ZoneScopedN("GDScriptFunctionState::_signal_callback");
 	#endif
 	Variant arg;
 	r_error.error = Callable::CallError::CALL_OK;
