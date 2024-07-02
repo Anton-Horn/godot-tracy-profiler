@@ -41,6 +41,10 @@
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
 
+#ifdef TRACY_ENABLE
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
+#endif
+
 class ArrayPrivate {
 public:
 	SafeRefCount refcount;
@@ -98,6 +102,9 @@ const Variant &Array::operator[](int p_idx) const {
 }
 
 int Array::size() const {
+	#ifdef TRACY_ENABLE
+		ZoneScopedN("Array::size");
+	#endif
 	return _p->array.size();
 }
 
@@ -199,6 +206,9 @@ void Array::operator=(const Array &p_array) {
 }
 
 void Array::assign(const Array &p_array) {
+	#ifdef TRACY_ENABLE
+		ZoneScopedN("Array::assign");
+	#endif
 	const ContainerTypeValidate &typed = _p->typed;
 	const ContainerTypeValidate &source_typed = p_array._p->typed;
 
@@ -264,6 +274,10 @@ void Array::assign(const Array &p_array) {
 }
 
 void Array::push_back(const Variant &p_value) {
+	#ifdef TRACY_ENABLE
+		ZoneScopedN("Array::push_back");
+	#endif
+
 	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
 	Variant value = p_value;
 	ERR_FAIL_COND(!_p->typed.validate(value, "push_back"));
@@ -271,6 +285,10 @@ void Array::push_back(const Variant &p_value) {
 }
 
 void Array::append_array(const Array &p_array) {
+	#ifdef TRACY_ENABLE
+		ZoneScopedN("Array::append_array");
+	#endif
+
 	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
 
 	Vector<Variant> validated_array = p_array._p->array;
@@ -379,6 +397,10 @@ int Array::rfind(const Variant &p_value, int p_from) const {
 }
 
 int Array::count(const Variant &p_value) const {
+	#ifdef TRACY_ENABLE
+		ZoneScopedN("Array::count");
+	#endif
+
 	Variant value = p_value;
 	ERR_FAIL_COND_V(!_p->typed.validate(value, "count"), 0);
 	if (_p->array.size() == 0) {

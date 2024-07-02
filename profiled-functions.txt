@@ -14,3 +14,27 @@ Process --> 3709-3714
 
 
 
+
+
+object.cpp
+---------------------------------------
+
+
+Object::callv ---> 703
+
+Object::callp ---> 721
+
+
+
+
+
+gdscript.cpp
+-----------------------------------------
+
+Variant GDScriptInstance::callp --> 1892
+
+Variant GDScript::callp --> 851
+
+Variant GDScriptNativeClass::callp --> 103
+
+
