@@ -52,6 +52,7 @@
 #include "core/io/file_access.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/os/os.h"
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/Tracy.hpp"
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_paths.h"
