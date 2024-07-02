@@ -46,6 +46,7 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define APP_SHORT_NAME "GodotEngine"
 
+
 VulkanHooks *VulkanContext::vulkan_hooks = nullptr;
 
 Vector<VkAttachmentReference> VulkanContext::_convert_VkAttachmentReference2(uint32_t p_count, const VkAttachmentReference2 *p_refs) {
@@ -1171,7 +1172,8 @@ Error VulkanContext::_create_instance() {
 				break;
 		}
 	}
-
+	
+	
 	return OK;
 }
 
@@ -1766,6 +1768,28 @@ Error VulkanContext::_initialize_queues(VkSurfaceKHR p_surface) {
 	}
 
 	queues_initialized = true;
+
+	const VkCommandPoolCreateInfo commandPoolCreateInfo = {
+		/*sType*/ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+		/*pNext*/ nullptr,
+		/*flags*/ 0,
+		/*queueFamilyIndex*/ present_queue_family_index,
+	};
+	err = vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &tracyCommandPool);
+	ERR_FAIL_COND_V(err, ERR_CANT_CREATE);
+	const VkCommandBufferAllocateInfo commandBufferAllocInfo = {
+		/*sType*/ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		/*pNext*/ nullptr,
+		/*commandPool*/ tracyCommandPool,
+		/*level*/ VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		/*commandBufferCount*/ 1,
+	};
+
+	err = vkAllocateCommandBuffers(device, &commandBufferAllocInfo, &tracyCommandBuffer);
+	ERR_FAIL_COND_V(err, ERR_CANT_CREATE);
+
+	tracyContext = TracyVkContext(gpu, device, graphics_queue, tracyCommandBuffer);
+
 	return OK;
 }
 
@@ -2364,6 +2388,7 @@ void VulkanContext::append_command_buffer(VkCommandBuffer p_command_buffer) {
 	}
 
 	command_buffer_queue.write[command_buffer_count] = p_command_buffer;
+	
 	command_buffer_count++;
 }
 
@@ -2907,6 +2932,7 @@ VulkanContext::~VulkanContext() {
 		free(queue_props);
 	}
 	if (device_initialized) {
+		//TracyVkDestroy(tracyContext);
 		for (uint32_t i = 0; i < FRAME_LAG; i++) {
 			vkDestroyFence(device, fences[i], nullptr);
 			vkDestroySemaphore(device, draw_complete_semaphores[i], nullptr);

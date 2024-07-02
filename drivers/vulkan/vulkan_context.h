@@ -48,6 +48,8 @@
 
 #include "vulkan_hooks.h"
 
+#include "core/Tracy-0.10/tracy-0.10/public/tracy/TracyVulkan.hpp"
+
 class VulkanContext {
 public:
 	struct SubgroupCapabilities {
@@ -273,6 +275,11 @@ protected:
 	virtual VkExtent2D _compute_swapchain_extent(const VkSurfaceCapabilitiesKHR &p_surf_capabilities, int *p_window_width, int *p_window_height) const;
 
 public:
+
+	VkCommandBuffer tracyCommandBuffer;
+	VkCommandPool tracyCommandPool;
+	TracyVkCtx tracyContext;
+
 	// Extension calls.
 	bool supports_renderpass2() const { return is_device_extension_enabled(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME); }
 	VkResult vkCreateRenderPass2KHR(VkDevice p_device, const VkRenderPassCreateInfo2 *p_create_info, const VkAllocationCallbacks *p_allocator, VkRenderPass *p_render_pass);

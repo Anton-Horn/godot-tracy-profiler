@@ -8706,6 +8706,10 @@ void RenderingDeviceVulkan::_finalize_command_bufers() {
 	}
 
 	{ // Complete the setup buffer (that needs to be processed before anything else).
+		TracyVkZone(context->tracyContext, frames[frame].draw_command_buffer, "test-zone");
+		TracyVkCollect(context->tracyContext, frames[frame].setup_command_buffer)
+
+
 		vkEndCommandBuffer(frames[frame].setup_command_buffer);
 		vkEndCommandBuffer(frames[frame].draw_command_buffer);
 	}
@@ -8972,6 +8976,7 @@ void RenderingDeviceVulkan::_flush(bool p_current_frame) {
 	}
 	// Not doing this crashes RADV (undefined behavior).
 	if (p_current_frame) {
+
 		vkEndCommandBuffer(frames[frame].setup_command_buffer);
 		vkEndCommandBuffer(frames[frame].draw_command_buffer);
 	}
